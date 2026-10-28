@@ -1,13 +1,60 @@
 [gd_scene format=3 uid="uid://1knryx5ba122"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_rq3qu"]
+[ext_resource type="Script" uid="uid://6xfdh2eg1lp1" path="res://Player.gd" id="1_a202f"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_4xowi"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_a202f"]
+sky_material = SubResource("ProceduralSkyMaterial_4xowi")
+
+[sub_resource type="Environment" id="Environment_noarx"]
+background_mode = 2
+sky = SubResource("Sky_a202f")
+glow_enabled = true
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_rq3qu"]
+size = Vector2(10, 10)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_4xowi"]
+data = PackedVector3Array(5, 0, 5, -5, 0, 5, 5, 0, -5, -5, 0, 5, -5, 0, -5, 5, 0, -5)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_rq3qu"]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_4xowi"]
+points = PackedVector3Array(-0.12520654, -0.532801, -0.4805069, 0.022783129, 0.4760704, 0.49888408, 0.16971254, 0.5591441, 0.46417162, 0.23105091, -0.8035912, 0.32045516, 0.40741014, 0.651043, -0.24352328, -0.4827893, 0.59484255, 0.082213186, -0.3628679, -0.68231165, 0.2896967, 0.46904355, -0.65452886, -0.06627126, -0.12744367, 0.8427015, -0.33810276, -0.39343542, -0.6839421, -0.24471663, 0.43825462, 0.62330925, 0.20084947, 0.0841477, 0.977454, 0.11479468, -0.06820232, -0.9764576, -0.12927033, 0.20054972, -0.56312895, -0.4514544, -0.18552664, 0.59545326, -0.4534751, -0.27336287, 0.59226835, 0.40775412, -0.0069364863, -0.47682306, 0.49966025, 0.37582088, -0.5886136, 0.31695515, 0.111579016, 0.5630594, -0.48117727, -0.41725034, 0.5278656, -0.27049688, -0.48454633, -0.59697217, -0.06650971, -0.27974695, 0.90856135, 0.05333608, -0.25019687, -0.8807117, 0.20531891, 0.263647, -0.90277094, -0.1273943, 0.29336792, 0.8715263, -0.15719566, 0.3734115, -0.5263189, -0.32824618, 0.4996626, 0.47664148, -0.0068885577, 0.053105574, 0.8750009, 0.32470253, -0.15454252, -0.5908538, 0.4658794, -0.09727988, -0.7823577, -0.39818847, -0.3876489, -0.49817133, 0.31564978, -0.30067965, -0.58799505, -0.38890144)
 
 [node name="Node3D" type="Node3D" unique_id=1196765142]
 
-[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=713086832]
-transform = Transform3D(3.742173, 0, 0, 0, 0.3796519, 0, 0, 0, 3.3273404, 0, 0, 0)
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1158209168]
+environment = SubResource("Environment_noarx")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1797943214]
-shape = SubResource("BoxShape3D_rq3qu")
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=75252822]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
 
-[node name="Player" type="CharacterBody3D" parent="." unique_id=444487972]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=2123341439]
+mesh = SubResource("PlaneMesh_rq3qu")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D" unique_id=88316592]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D" unique_id=1946728562]
+shape = SubResource("ConcavePolygonShape3D_4xowi")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=1190819550]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0840933, 0)
+script = ExtResource("1_a202f")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Player" unique_id=1031224647]
+mesh = SubResource("CapsuleMesh_rq3qu")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=564363104]
+shape = SubResource("ConvexPolygonShape3D_4xowi")
+
+[node name="TwistPivot" type="Node3D" parent="Player" unique_id=980861827]
+
+[node name="PitchPivot" type="Node3D" parent="Player/TwistPivot" unique_id=1523450332]
+
+[node name="Camera3D" type="Camera3D" parent="Player/TwistPivot/PitchPivot" unique_id=472375249]
+transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 1.316, 5)
