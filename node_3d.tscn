@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://1knryx5ba122"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_rq3qu"]
+
+[node name="Node3D" type="Node3D" unique_id=1196765142]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=713086832]
+transform = Transform3D(3.742173, 0, 0, 0, 0.3796519, 0, 0, 0, 3.3273404, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=1797943214]
+shape = SubResource("BoxShape3D_rq3qu")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=444487972]
