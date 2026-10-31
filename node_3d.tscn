@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://6xfdh2eg1lp1" path="res://Player.gd" id="1_a202f"]
 [ext_resource type="Texture2D" uid="uid://bscxbfuibe75g" path="res://icon.svg" id="1_noarx"]
+[ext_resource type="Script" uid="uid://bag6oinuk02wg" path="res://Camera.gd" id="3_a0tk4"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_4xowi"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -63,3 +64,4 @@ shape = SubResource("ConvexPolygonShape3D_4xowi")
 
 [node name="Camera3D" type="Camera3D" parent="Player/TwistPivot/PitchPivot" unique_id=472375249]
 transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 1.316, 5)
+script = ExtResource("3_a0tk4")

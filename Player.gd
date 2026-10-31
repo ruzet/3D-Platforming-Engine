@@ -1,46 +1,68 @@
 extends CharacterBody3D
 
-const GroundSpeed = 10
+const GroundSpeed = 20
 const Gravity = 20
 const Acceleration = 3
-const Deceleration = 1
+const Deceleration = 3
+const SkidDeceleration = 8
 
+@onready var PitchPivot = $"TwistPivot/PitchPivot"
+@onready var TwistPivot = $"TwistPivot"
+
+
+var SkidTimer = 0
 var HorizontalVelocity = 0
 var XVelocity = 0
 var ZVelocity = 0
 var YVelocity = 0
-var XDirection = 0
-var ZDirection = 0
-var LastXDirection = 0
-var LastZDirection = 0
+var Direction = Vector3.ZERO
+var LastDirection = Vector3.ZERO
+var SkidDirection = Vector3.ZERO
+var Skidding = false
 
-func GroundAccelDecel(Delta):
-	if XDirection != 0 || ZDirection != 0:
-		HorizontalVelocity = GroundSpeed + (HorizontalVelocity - GroundSpeed) * exp(-Acceleration * Delta)
+func RotateValue(Value, Degrees):
+	var Angle = Value * 180
+	Angle += Degrees
+	return clamp(Angle / 180, -1, 1)
+
+func HorizontalVelocityHandler(Delta):
+	if Skidding == false:
+		if Direction != Vector3.ZERO:
+			LastDirection = Direction
+			HorizontalVelocity = GroundSpeed + (HorizontalVelocity - GroundSpeed) * exp(-Acceleration * Delta)
+		else:
+			HorizontalVelocity *= exp(-Deceleration * Delta)
+			if HorizontalVelocity < 0.1: HorizontalVelocity = 0
+
+		XVelocity = HorizontalVelocity * LastDirection.x
+		ZVelocity = HorizontalVelocity * LastDirection.z
 	else:
-		HorizontalVelocity = 0 + (HorizontalVelocity - 0) * exp(-Deceleration * Delta)
+		HorizontalVelocity *= exp(-SkidDeceleration * Delta)
+		XVelocity = HorizontalVelocity * SkidDirection.x
+		ZVelocity = HorizontalVelocity * SkidDirection.z
+
 
 func _ready() -> void:
 	pass
 
-func _process(Delta: float) -> void:
-	XDirection = Input.get_action_strength("Right") - Input.get_action_strength("Left")
-	ZDirection = Input.get_action_strength("Down") - Input.get_action_strength("Up")
-	XDirection = Vector2(XDirection, ZDirection).normalized().x
-	ZDirection = Vector2(XDirection, ZDirection).normalized().y
+func _physics_process(Delta: float) -> void:
+	var Input2D = Input.get_vector("Left", "Right", "Down", "Up")
+	if SkidTimer > 0:
+		SkidTimer -= Delta
+	Skidding = SkidTimer > 0
 
-	if XDirection != 0: LastXDirection = XDirection
-	if ZDirection != 0: LastZDirection = ZDirection
+	Direction = TwistPivot.global_transform.basis * Vector3(Input2D.x, 0, -Input2D.y)
+	Direction.y = 0
+	Direction = Direction.normalized()
 
-	if XDirection != 0 && ZDirection == 0: LastZDirection = 0
-	if ZDirection != 0 && XDirection == 0: LastXDirection = 0
+	if LastDirection.dot(Direction) < -0.5 && Skidding == false && HorizontalVelocity > GroundSpeed * 0.75:
+		SkidDirection = LastDirection
+		SkidTimer = 0.3
+		Skidding = true
 
-	XVelocity = HorizontalVelocity * LastXDirection
-	ZVelocity = HorizontalVelocity * LastZDirection
-
+	HorizontalVelocityHandler(Delta)
 
 	if is_on_floor():
-		GroundAccelDecel(Delta)
 		YVelocity = 0
 		pass
 	else:
