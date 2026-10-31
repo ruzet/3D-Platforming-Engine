@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://1knryx5ba122"]
 
 [ext_resource type="Script" uid="uid://6xfdh2eg1lp1" path="res://Player.gd" id="1_a202f"]
+[ext_resource type="Texture2D" uid="uid://bscxbfuibe75g" path="res://icon.svg" id="1_noarx"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_4xowi"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -14,11 +15,15 @@ background_mode = 2
 sky = SubResource("Sky_a202f")
 glow_enabled = true
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_rq3qu"]
-size = Vector2(10, 10)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a0tk4"]
+albedo_texture = ExtResource("1_noarx")
 
-[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_4xowi"]
-data = PackedVector3Array(5, 0, 5, -5, 0, 5, 5, 0, -5, -5, 0, 5, -5, 0, -5, 5, 0, -5)
+[sub_resource type="PlaneMesh" id="PlaneMesh_rq3qu"]
+material = SubResource("StandardMaterial3D_a0tk4")
+size = Vector2(100, 100)
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_a202f"]
+data = PackedVector3Array(50, 0, 50, -50, 0, 50, 50, 0, -50, -50, 0, 50, -50, 0, -50, 50, 0, -50)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_rq3qu"]
 
@@ -39,8 +44,8 @@ mesh = SubResource("PlaneMesh_rq3qu")
 
 [node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D" unique_id=88316592]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D" unique_id=1946728562]
-shape = SubResource("ConcavePolygonShape3D_4xowi")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D" unique_id=594114105]
+shape = SubResource("ConcavePolygonShape3D_a202f")
 
 [node name="Player" type="CharacterBody3D" parent="." unique_id=1190819550]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0840933, 0)

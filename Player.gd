@@ -1,27 +1,46 @@
 extends CharacterBody3D
 
-const Speed = 300
-const Gravity = 500
-const Acceleraton = 10
+const GroundSpeed = 10
+const Gravity = 20
+const Acceleration = 3
+const Deceleration = 1
+
+var HorizontalVelocity = 0
+var XVelocity = 0
+var ZVelocity = 0
+var YVelocity = 0
+var XDirection = 0
+var ZDirection = 0
+var LastXDirection = 0
+var LastZDirection = 0
+
+func GroundAccelDecel(Delta):
+	if XDirection != 0 || ZDirection != 0:
+		HorizontalVelocity = GroundSpeed + (HorizontalVelocity - GroundSpeed) * exp(-Acceleration * Delta)
+	else:
+		HorizontalVelocity = 0 + (HorizontalVelocity - 0) * exp(-Deceleration * Delta)
 
 func _ready() -> void:
 	pass
 
 func _process(Delta: float) -> void:
-	var XVelocity = 0
-	var ZVelocity = 0
-	var YVelocity = 0
-	var XDirection = Input.get_action_strength("Right") - Input.get_action_strength("Left")
-	var ZDirection = Input.get_action_strength("Down") - Input.get_action_strength("Up")
+	XDirection = Input.get_action_strength("Right") - Input.get_action_strength("Left")
+	ZDirection = Input.get_action_strength("Down") - Input.get_action_strength("Up")
 	XDirection = Vector2(XDirection, ZDirection).normalized().x
 	ZDirection = Vector2(XDirection, ZDirection).normalized().y
-	
-	var TargetXVelocity = XDirection * Speed * Delta
-	var TargetZVelocity = ZDirection * Speed * Delta
-	XVelocity = TargetXVelocity + (XVelocity - TargetXVelocity) * exp(-Acceleration * Delta)
-	ZVelocity = ZDirection * Speed * Delta
+
+	if XDirection != 0: LastXDirection = XDirection
+	if ZDirection != 0: LastZDirection = ZDirection
+
+	if XDirection != 0 && ZDirection == 0: LastZDirection = 0
+	if ZDirection != 0 && XDirection == 0: LastXDirection = 0
+
+	XVelocity = HorizontalVelocity * LastXDirection
+	ZVelocity = HorizontalVelocity * LastZDirection
+
 
 	if is_on_floor():
+		GroundAccelDecel(Delta)
 		YVelocity = 0
 		pass
 	else:
