@@ -1,33 +1,33 @@
 extends CharacterBody3D
 
-const Speed = 15
-const CrouchingSpeed = 9
-const DashSpeed = 22
-const DashLaunch = 15
-const Gravity = 40
-const JumpPower = 17
-const AirJumpPower = 13.5
-const ShortJumpPower = 10
-const MaxAirJumps = 2
-const StandHeight = 2
-const CrouchHeight = 1.5
-const GroundAcceleration = 3
-const GroundDeceleration = 4
-const AirAccelerate = 3
-const AirDecelerate = 4
-const SkidDeceleration = 8
-
 @onready var PitchPivot = $"TwistPivot/PitchPivot"
 @onready var TwistPivot = $"TwistPivot"
 @onready var BeanMesh = $"BeanMesh"
 @onready var CollisionMesh = $"CollisionShape"
 
-var SkidTimer = 0
-var JumpTimer = 0
-var HorizontalVelocity = 0
-var XVelocity = 0
-var ZVelocity = 0
-var YVelocity = 0
+const Speed = 15.0
+const CrouchingSpeed = 9.0
+const DashSpeed = 22.0
+const DashLaunch = 15.0
+const Gravity = 40.0
+const JumpPower = 17.0
+const AirJumpPower = 13.5
+const ShortJumpPower = 10.0
+const MaxAirJumps = 2
+const StandHeight = 2.0
+const CrouchHeight = 1.5
+const GroundAcceleration = 3.0
+const GroundDeceleration = 4.0
+const AirAccelerate = 3.0
+const AirDecelerate = 4.0
+const SkidDeceleration = 8.0
+
+var SkidTimer = 0.0
+var JumpTimer = 0.0
+var HorizontalVelocity = 0.0
+var XVelocity = 0.0
+var ZVelocity = 0.0
+var YVelocity = 0.0
 var CurrentAirJumps = 0
 var Direction = Vector3.ZERO
 var MaxDirection = Vector3.ZERO

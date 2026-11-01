@@ -122,6 +122,7 @@ mesh = SubResource("BoxMesh_muyn6")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall1/StaticBody3D" unique_id=260341156]
 shape = SubResource("ConvexPolygonShape3D_i5arm")
+debug_fill = false
 
 [node name="Wall2" type="MeshInstance3D" parent="." unique_id=1981064147]
 transform = Transform3D(1, 0, 0, 0, 7.5006676, 0, 0, 0, 12.185838, 11.045775, 3.879296, -6.5169535)
@@ -131,6 +132,7 @@ mesh = SubResource("BoxMesh_muyn6")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall2/StaticBody3D" unique_id=264531487]
 shape = SubResource("ConvexPolygonShape3D_wc5p8")
+debug_fill = false
 
 [node name="Wall3" type="MeshInstance3D" parent="." unique_id=540888381]
 transform = Transform3D(1, 0, 0, 0, 2.846437, 0, 0, 0, 3.713502, 11.045775, 1.7738597, 2.7631907)
@@ -140,3 +142,4 @@ mesh = SubResource("BoxMesh_muyn6")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall3/StaticBody3D" unique_id=524875032]
 shape = SubResource("ConvexPolygonShape3D_jsk3o")
+debug_fill = false
