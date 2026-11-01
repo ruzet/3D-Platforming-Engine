@@ -2,10 +2,13 @@
 
 [ext_resource type="Script" uid="uid://6xfdh2eg1lp1" path="res://Player.gd" id="1_a202f"]
 [ext_resource type="Script" uid="uid://bag6oinuk02wg" path="res://Camera.gd" id="3_a0tk4"]
+[ext_resource type="AudioStream" uid="uid://cnxsdb2g31pdb" path="res://3dplatformertheme.mp3" id="3_r3fl7"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_4xowi"]
-sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+sky_top_color = Color(0.44768476, 0.6832407, 0.93388635, 1)
+sky_horizon_color = Color(0.66798395, 0.7844754, 0.8958495, 1)
+ground_bottom_color = Color(0.12234182, 0.14511025, 0.3622883, 1)
+ground_horizon_color = Color(0.47315174, 0.6109932, 0.6806253, 1)
 
 [sub_resource type="Sky" id="Sky_a202f"]
 sky_material = SubResource("ProceduralSkyMaterial_4xowi")
@@ -14,16 +17,21 @@ sky_material = SubResource("ProceduralSkyMaterial_4xowi")
 background_mode = 2
 sky = SubResource("Sky_a202f")
 glow_enabled = true
+adjustment_enabled = true
+adjustment_contrast = 1.13
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_noarx"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_rq3qu"]
+material = SubResource("StandardMaterial3D_noarx")
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_a0tk4"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_noarx"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a0tk4"]
 albedo_color = Color(0.105882354, 0.5019608, 0.8666667, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_rq3qu"]
-material = SubResource("StandardMaterial3D_noarx")
+material = SubResource("StandardMaterial3D_a0tk4")
 size = Vector3(100, 1, 100)
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_noarx"]
@@ -34,6 +42,9 @@ left_to_right = 0.0
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_a0tk4"]
 points = PackedVector3Array(0.5, -0.5, -0.5, -0.4761159, 0.50793654, 0.50793654, -0.4761159, 0.50793654, -0.50793654, -0.5, -0.5, 0.5, 0.50793654, -0.4761159, 0.50793654, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.50793654, -0.4761159, -0.50793654, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5)
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_4arys"]
+points = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
 
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_r3fl7"]
 points = PackedVector3Array(0.5, -0.5, -0.5, -0.4761159, 0.50793654, 0.50793654, -0.4761159, 0.50793654, -0.50793654, -0.5, -0.5, 0.5, 0.50793654, -0.4761159, 0.50793654, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.50793654, -0.4761159, -0.50793654, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5)
@@ -58,11 +69,12 @@ points = PackedVector3Array(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5
 environment = SubResource("Environment_noarx")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=75252822]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+transform = Transform3D(0.16332597, 0.57430637, -0.8021825, -7.108352e-08, 0.8131007, 0.58212304, 0.98657215, -0.09507574, 0.13280049, 0, 9.221457, 0)
+light_energy = 0.63
 shadow_enabled = true
 
 [node name="Player" type="CharacterBody3D" parent="." unique_id=1190819550]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.0840933, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
 script = ExtResource("1_a202f")
 
 [node name="BeanMesh" type="MeshInstance3D" parent="Player" unique_id=1031224647]
@@ -70,14 +82,6 @@ mesh = SubResource("CapsuleMesh_rq3qu")
 
 [node name="CollisionShape" type="CollisionShape3D" parent="Player" unique_id=564363104]
 shape = SubResource("CapsuleShape3D_a0tk4")
-
-[node name="TwistPivot" type="Node3D" parent="Player" unique_id=980861827]
-
-[node name="PitchPivot" type="Node3D" parent="Player/TwistPivot" unique_id=1523450332]
-
-[node name="Camera3D" type="Camera3D" parent="Player/TwistPivot/PitchPivot" unique_id=472375249]
-transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 1.316, 5)
-script = ExtResource("3_a0tk4")
 
 [node name="Floor" type="MeshInstance3D" parent="." unique_id=998766310]
 mesh = SubResource("BoxMesh_rq3qu")
@@ -95,6 +99,15 @@ mesh = SubResource("PrismMesh_rq3qu")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Slope1/StaticBody3D" unique_id=1515830155]
 shape = SubResource("ConvexPolygonShape3D_a0tk4")
+
+[node name="Slope4" type="MeshInstance3D" parent="." unique_id=120215490]
+transform = Transform3D(276.00555, 0, 0, 0, 32.143436, 0, 0, 0, 46.76317, -175.94327, 16.482796, -0.38254547)
+mesh = SubResource("PrismMesh_rq3qu")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Slope4" unique_id=1592648839]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Slope4/StaticBody3D" unique_id=2094354632]
+shape = SubResource("ConvexPolygonShape3D_4arys")
 
 [node name="Slope2" type="MeshInstance3D" parent="." unique_id=860619288]
 transform = Transform3D(3.1630223, 0, 0, 0, 2.481478, 0, 0, 0, 6.841895, -10.082496, 1.7092133, 0.03964424)
@@ -143,3 +156,23 @@ mesh = SubResource("BoxMesh_muyn6")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Wall3/StaticBody3D" unique_id=524875032]
 shape = SubResource("ConvexPolygonShape3D_jsk3o")
 debug_fill = false
+
+[node name="DamageBrick" type="MeshInstance3D" parent="." unique_id=1343936401]
+transform = Transform3D(1, 0, 0, 0, 2.846437, 0, 0, 0, 3.713502, 1.985858, 1.7738597, -12.992716)
+mesh = SubResource("BoxMesh_muyn6")
+
+[node name="Song" type="AudioStreamPlayer2D" parent="." unique_id=1839831671]
+stream = ExtResource("3_r3fl7")
+autoplay = true
+parameters/looping = true
+
+[node name="CameraNode" type="Node3D" parent="." unique_id=1001818615]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+
+[node name="TwistPivot" type="Node3D" parent="CameraNode" unique_id=980861827]
+
+[node name="PitchPivot" type="Node3D" parent="CameraNode/TwistPivot" unique_id=1523450332]
+
+[node name="Camera3D" type="Camera3D" parent="CameraNode/TwistPivot/PitchPivot" unique_id=472375249]
+transform = Transform3D(1, 0, 0, 0, 0.9396926, 0.34202012, 0, -0.34202012, 0.9396926, 0, 1.316, 5)
+script = ExtResource("3_a0tk4")

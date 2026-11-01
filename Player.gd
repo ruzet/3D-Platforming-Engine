@@ -1,13 +1,18 @@
 extends CharacterBody3D
 
-@onready var PitchPivot = $"TwistPivot/PitchPivot"
-@onready var TwistPivot = $"TwistPivot"
+@onready var PitchPivot = $"../CameraNode/TwistPivot/PitchPivot"
+@onready var TwistPivot = $"../CameraNode/TwistPivot"
 @onready var BeanMesh = $"BeanMesh"
 @onready var CollisionMesh = $"CollisionShape"
 
 const Speed = 15.0
 const CrouchingSpeed = 9.0
 const DashSpeed = 22.0
+const SlideSpeed = 18.0
+const SlideMaxSpeed = 999.0
+const SlideMinSpeed = 1.5
+const SlideFriction = 0.2
+const SlideSlopeStrength = 2.5
 const DashLaunch = 15.0
 const Gravity = 40.0
 const JumpPower = 17.0
@@ -21,18 +26,21 @@ const GroundDeceleration = 4.0
 const AirAccelerate = 3.0
 const AirDecelerate = 4.0
 const SkidDeceleration = 8.0
+const MaxHP = 3
 
+var HorizontalVelocity = 0.0
 var SkidTimer = 0.0
 var JumpTimer = 0.0
-var HorizontalVelocity = 0.0
 var XVelocity = 0.0
 var ZVelocity = 0.0
 var YVelocity = 0.0
 var CurrentAirJumps = 0
+var HP = MaxHP
 var Direction = Vector3.ZERO
 var MaxDirection = Vector3.ZERO
 var LastDirection = Vector3.ZERO
 var DashDirection = Vector3.ZERO
+var SlideDirection = Vector3.ZERO
 var BonkDirection = Vector3.ZERO
 var SkidDirection = Vector3.ZERO
 var CurrentNormal = Vector3.UP
@@ -42,6 +50,7 @@ var Jumping = false
 var Skidding = false
 var Crouching = false
 var Dashing = false
+var Sliding = false
 var Bonked = false
 
 func SetHeight(Height):
@@ -59,16 +68,28 @@ func RotateValue(Value, Degrees):
 func AlignToFloor(Delta):
 	var TargetNormal = Vector3.UP
 	if is_on_floor() && get_floor_angle() < floor_max_angle:
-		TargetNormal = get_floor_normal() if is_on_floor() else Vector3.UP
-	else:
-		TargetNormal = Vector3.UP
-	CurrentNormal = CurrentNormal.slerp(TargetNormal, 1 - exp(-12 * Delta)).normalized()
+		TargetNormal = get_floor_normal()
+
+	CurrentNormal = CurrentNormal.lerp(TargetNormal, 1.0 - exp(-12.0 * Delta)).normalized()
 
 	var Tilt = Basis(Quaternion(Vector3.UP, CurrentNormal))
 	BeanMesh.global_transform.basis = Tilt
 
 func HorizontalVelocityHandler(Delta):
-	if !Skidding && !Dashing && !Bonked:
+	if Bonked:
+		LastDirection = BonkDirection
+		XVelocity = HorizontalVelocity * BonkDirection.x
+		ZVelocity = HorizontalVelocity * BonkDirection.z
+	elif Dashing:
+		XVelocity = HorizontalVelocity * DashDirection.x
+		ZVelocity = HorizontalVelocity * DashDirection.z
+	elif Sliding:
+		SlideHandler(Delta)
+	elif Skidding:
+		HorizontalVelocity *= exp(-SkidDeceleration * Delta)
+		XVelocity = HorizontalVelocity * SkidDirection.x
+		ZVelocity = HorizontalVelocity * SkidDirection.z
+	else:
 		if is_on_floor():
 			if MaxDirection != Vector3.ZERO:
 				var TargetSpeed = Speed if !Crouching else CrouchingSpeed
@@ -85,22 +106,11 @@ func HorizontalVelocityHandler(Delta):
 			HorizontalVelocity = CurrentHorizontalVelocity.length()
 			if HorizontalVelocity > 0.1:
 				LastDirection = CurrentHorizontalVelocity / HorizontalVelocity
-
 		XVelocity = HorizontalVelocity * LastDirection.x
 		ZVelocity = HorizontalVelocity * LastDirection.z
-	elif !Dashing && !Bonked:
-		HorizontalVelocity *= exp(-SkidDeceleration * Delta)
-		XVelocity = HorizontalVelocity * SkidDirection.x
-		ZVelocity = HorizontalVelocity * SkidDirection.z
-	elif !Bonked:
-		XVelocity = HorizontalVelocity * DashDirection.x
-		ZVelocity = HorizontalVelocity * DashDirection.z
-	else:
-		LastDirection = BonkDirection
-		XVelocity = HorizontalVelocity * BonkDirection.x
-		ZVelocity = HorizontalVelocity * BonkDirection.z
 
 func Jump():
+	if Sliding: EndSlide()
 	SkidTimer = 0
 	Jumping = true
 	JumpTimer = 0.1
@@ -128,28 +138,73 @@ func Dash():
 	HorizontalVelocity = DashSpeed
 	YVelocity = DashLaunch
 
+func EndSlide():
+	Sliding = false
+	LastDirection = SlideDirection
+
+func Slide():
+	Sliding = true
+	SlideDirection = LastDirection
+	HorizontalVelocity = max(HorizontalVelocity, SlideSpeed)
+
+func SlideHandler(Delta):
+	var Flat = SlideDirection * HorizontalVelocity
+	Flat *= exp(-SlideFriction * Delta)
+
+	if is_on_floor():
+		var Slope = Vector3.DOWN.slide(get_floor_normal())
+		Slope.y = 0
+		Flat += Slope * Gravity * SlideSlopeStrength * Delta
+
+	HorizontalVelocity = min(Flat.length(), SlideMaxSpeed)
+	if HorizontalVelocity > 0.1:
+		SlideDirection = Flat.normalized()
+
+	XVelocity = HorizontalVelocity * SlideDirection.x
+	ZVelocity = HorizontalVelocity * SlideDirection.z
+
 func Bonk(WallNormal):
 	Bonked = true
 	BonkDirection = -DashDirection.reflect(WallNormal)
 	YVelocity = HorizontalVelocity / 2
 	HorizontalVelocity /= 2
-	pass
+
+func ChangeColor():
+	var NewColor = Color.WHITE
+	if Bonked:
+		NewColor = Color.RED
+	elif Dashing:
+		NewColor = Color.GREEN
+	elif !is_on_floor():
+		var PercentOfJumpsLeft = float(CurrentAirJumps) / MaxAirJumps
+		NewColor = Color(0.2, 0.6, 1.0).lerp(Color.WHITE, PercentOfJumpsLeft)
+	BeanMesh.material_override.albedo_color = NewColor
 
 func _ready() -> void:
+	var Mat = StandardMaterial3D.new()
 	floor_snap_length = 0.6
 	floor_constant_speed = true
 	floor_stop_on_slope = true
 	CollisionMesh.shape = CollisionMesh.shape.duplicate()
 	BeanMesh.mesh = BeanMesh.mesh.duplicate()
-	pass
+
+	Mat.albedo_color = Color.WHITE
+	BeanMesh.material_override = Mat
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("Jump"): HoldingSpace = true
 	if event.is_action_released("Jump"): HoldingSpace = false
+
 	if event.is_action_pressed("Jump") && !Jumping && !Bonked:
 		Jump()
-	elif event.is_action_pressed("Dash") && !is_on_floor() && CanDash && !Bonked:
-		Dash()
+	elif event.is_action_pressed("Dash") && !Bonked:
+		if is_on_floor():
+			if Crouching && !Sliding:
+				Slide()
+		elif CanDash && !Dashing:
+			Dash()
+	elif event.is_action_pressed("Crouch") && Sliding:
+		EndSlide()
 	elif event.is_action_pressed("Crouch") && is_on_floor():
 		if !Crouching:
 			Crouching = true
@@ -157,6 +212,32 @@ func _input(event: InputEvent) -> void:
 		elif not test_move(global_transform, Vector3(0, StandHeight - CrouchHeight, 0)):
 			Crouching = false
 			SetHeight(StandHeight)
+	elif event.is_action_pressed("Reset"):
+		SkidTimer = 0.0
+		JumpTimer = 0.0
+		HorizontalVelocity = 0.0
+		XVelocity = 0.0
+		ZVelocity = 0.0
+		YVelocity = 0.0
+		CurrentAirJumps = 0
+		Direction = Vector3.ZERO
+		MaxDirection = Vector3.ZERO
+		LastDirection = Vector3.ZERO
+		DashDirection = Vector3.ZERO
+		SlideDirection = Vector3.ZERO
+		BonkDirection = Vector3.ZERO
+		SkidDirection = Vector3.ZERO
+		CurrentNormal = Vector3.UP
+		HoldingSpace = false
+		CanDash = false
+		Jumping = false
+		Skidding = false
+		Crouching = false
+		Dashing = false
+		Sliding = false
+		Bonked = false
+		SetHeight(StandHeight)
+		self.position = Vector3(0, 3, 0)
 
 func _physics_process(Delta: float) -> void:
 	var Input2D = Input.get_vector("Left", "Right", "Down", "Up")
@@ -170,12 +251,18 @@ func _physics_process(Delta: float) -> void:
 	MaxDirection = MaxDirection.normalized()
 	Direction = Direction.lerp(MaxDirection, (0.15 if is_on_floor() else 0.2))
 
-	if is_on_floor() && LastDirection.dot(MaxDirection) < -0.5 && !Skidding && !Crouching && HorizontalVelocity > Speed * 0.75:
+	if is_on_floor() && LastDirection.dot(MaxDirection) < -0.5 && !Skidding && !Crouching && !Sliding && HorizontalVelocity > Speed * 0.75:
 		SkidDirection = LastDirection
 		SkidTimer = 0.3
 		Skidding = true
 
 	HorizontalVelocityHandler(Delta)
+	ChangeColor()
+
+	if Sliding:
+		var OnFlat = is_on_floor() && get_floor_angle() < deg_to_rad(5)
+		if !is_on_floor() || (OnFlat && HorizontalVelocity < SlideMinSpeed):
+			EndSlide()
 
 	if is_on_floor():
 		if !Jumping:

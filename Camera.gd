@@ -2,6 +2,8 @@ extends Camera3D
 
 @onready var PitchPivot = $".."
 @onready var TwistPivot = $"../.."
+@onready var CameraNode = $"../../.."
+@onready var Player = $"../../../../Player"
 
 const MaxZoom = 10.0
 const MinZoom = 1.0
@@ -26,4 +28,5 @@ func _input(event: InputEvent) -> void:
 			TargetZoom = clamp(TargetZoom + ZoomStep, MinZoom, MaxZoom)
 
 func _process(Delta: float) -> void:
+	CameraNode.position = CameraNode.position.lerp(Player.position, 0.2)
 	position.z = lerp(position.z, TargetZoom, 1 - exp(-ZoomSmoothing * Delta))
