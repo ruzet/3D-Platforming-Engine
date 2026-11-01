@@ -11,7 +11,7 @@ const DashSpeed = 22.0
 const SlideSpeed = 18.0
 const SlideMaxSpeed = 999.0
 const SlideMinSpeed = 1.5
-const SlideFriction = 0.2
+const SlideFriction = 0.5
 const SlideSlopeStrength = 2.5
 const DashLaunch = 15.0
 const Gravity = 40.0
@@ -29,6 +29,7 @@ const SkidDeceleration = 8.0
 const MaxHP = 3
 
 var HorizontalVelocity = 0.0
+var IFramesTimer = 0.0
 var SkidTimer = 0.0
 var JumpTimer = 0.0
 var XVelocity = 0.0
@@ -52,6 +53,7 @@ var Crouching = false
 var Dashing = false
 var Sliding = false
 var Bonked = false
+var IFrames
 
 func SetHeight(Height):
 	CollisionMesh.shape.height = Height
@@ -163,6 +165,44 @@ func SlideHandler(Delta):
 	XVelocity = HorizontalVelocity * SlideDirection.x
 	ZVelocity = HorizontalVelocity * SlideDirection.z
 
+func Reset():
+	HorizontalVelocity = 0.0
+	IFramesTimer = 0.0
+	SkidTimer = 0.0
+	JumpTimer = 0.0
+	XVelocity = 0.0
+	ZVelocity = 0.0
+	YVelocity = 0.0
+	CurrentAirJumps = 0
+	HP = MaxHP
+	Direction = Vector3.ZERO
+	MaxDirection = Vector3.ZERO
+	LastDirection = Vector3.ZERO
+	DashDirection = Vector3.ZERO
+	SlideDirection = Vector3.ZERO
+	BonkDirection = Vector3.ZERO
+	SkidDirection = Vector3.ZERO
+	CurrentNormal = Vector3.UP
+	HoldingSpace = false
+	CanDash = false
+	Jumping = false
+	Skidding = false
+	Crouching = false
+	Dashing = false
+	Sliding = false
+	Bonked = false
+	SetHeight(StandHeight)
+	self.position = Vector3(0, 3, 0)
+
+func Damaged():
+	HP -= 1
+
+	if HP >= 1:
+		IFrames = true
+		IFramesTimer = 3
+	else:
+		Reset()
+
 func Bonk(WallNormal):
 	Bonked = true
 	BonkDirection = -DashDirection.reflect(WallNormal)
@@ -175,6 +215,10 @@ func ChangeColor():
 		NewColor = Color.RED
 	elif Dashing:
 		NewColor = Color.GREEN
+	elif Sliding:
+		NewColor = Color.YELLOW
+	elif Skidding:
+		NewColor = Color.YELLOW_GREEN
 	elif !is_on_floor():
 		var PercentOfJumpsLeft = float(CurrentAirJumps) / MaxAirJumps
 		NewColor = Color(0.2, 0.6, 1.0).lerp(Color.WHITE, PercentOfJumpsLeft)
@@ -213,39 +257,21 @@ func _input(event: InputEvent) -> void:
 			Crouching = false
 			SetHeight(StandHeight)
 	elif event.is_action_pressed("Reset"):
-		SkidTimer = 0.0
-		JumpTimer = 0.0
-		HorizontalVelocity = 0.0
-		XVelocity = 0.0
-		ZVelocity = 0.0
-		YVelocity = 0.0
-		CurrentAirJumps = 0
-		Direction = Vector3.ZERO
-		MaxDirection = Vector3.ZERO
-		LastDirection = Vector3.ZERO
-		DashDirection = Vector3.ZERO
-		SlideDirection = Vector3.ZERO
-		BonkDirection = Vector3.ZERO
-		SkidDirection = Vector3.ZERO
-		CurrentNormal = Vector3.UP
-		HoldingSpace = false
-		CanDash = false
-		Jumping = false
-		Skidding = false
-		Crouching = false
-		Dashing = false
-		Sliding = false
-		Bonked = false
-		SetHeight(StandHeight)
-		self.position = Vector3(0, 3, 0)
+		Reset()
 
 func _physics_process(Delta: float) -> void:
 	var Input2D = Input.get_vector("Left", "Right", "Down", "Up")
 	MaxDirection = TwistPivot.global_transform.basis * Vector3(Input2D.x, 0, -Input2D.y)
 	if SkidTimer > 0: SkidTimer -= Delta
 	if JumpTimer > 0: JumpTimer -= Delta
+	if IFramesTimer > 0:
+		IFramesTimer -= Delta
+		BeanMesh.visible = int(IFramesTimer * 12) % 2 == 0
+	else: 
+		BeanMesh.visible = true
 	Skidding = SkidTimer > 0
 	Jumping = JumpTimer > 0
+	IFrames = IFramesTimer > 0
 
 	MaxDirection.y = 0
 	MaxDirection = MaxDirection.normalized()
@@ -279,6 +305,12 @@ func _physics_process(Delta: float) -> void:
 
 	self.velocity = Vector3(XVelocity, YVelocity, ZVelocity)
 	move_and_slide()
+
+	for i in get_slide_collision_count():
+		var Collision = get_slide_collision(i)
+		var Collider = Collision.get_collider()
+		if Collider && Collider.is_in_group("HitPart") && !IFrames:
+			Damaged()
 
 	if Dashing && is_on_wall() && !Bonked:
 		if DashDirection.dot(get_wall_normal()) < -0.5:

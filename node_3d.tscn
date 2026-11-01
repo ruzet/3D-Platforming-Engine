@@ -63,6 +63,15 @@ points = PackedVector3Array(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_jsk3o"]
 points = PackedVector3Array(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jka67"]
+albedo_color = Color(1, 0, 0, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_r3fl7"]
+material = SubResource("StandardMaterial3D_jka67")
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_6iypd"]
+points = PackedVector3Array(0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5)
+
 [node name="Node3D" type="Node3D" unique_id=1196765142]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1158209168]
@@ -158,8 +167,13 @@ shape = SubResource("ConvexPolygonShape3D_jsk3o")
 debug_fill = false
 
 [node name="DamageBrick" type="MeshInstance3D" parent="." unique_id=1343936401]
-transform = Transform3D(1, 0, 0, 0, 2.846437, 0, 0, 0, 3.713502, 1.985858, 1.7738597, -12.992716)
-mesh = SubResource("BoxMesh_muyn6")
+transform = Transform3D(4.2268324, 0, 0, 0, 0.68633723, 0, 0, 0, 3.713502, -0.31799984, 0.713392, -12.992716)
+mesh = SubResource("BoxMesh_r3fl7")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="DamageBrick" unique_id=959631644 groups=["HitPart"]]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DamageBrick/StaticBody3D" unique_id=1149263489]
+shape = SubResource("ConvexPolygonShape3D_6iypd")
 
 [node name="Song" type="AudioStreamPlayer2D" parent="." unique_id=1839831671]
 stream = ExtResource("3_r3fl7")
