@@ -2,11 +2,13 @@ extends CharacterBody3D
 
 const Speed = 15
 const CrouchingSpeed = 9
-const DiveSpeed = 25
-const DiveLaunch = 15
+const DashSpeed = 22
+const DashLaunch = 15
 const Gravity = 40
 const JumpPower = 17
+const AirJumpPower = 13.5
 const ShortJumpPower = 10
+const MaxAirJumps = 2
 const StandHeight = 2
 const CrouchHeight = 1.5
 const GroundAcceleration = 3
@@ -26,17 +28,21 @@ var HorizontalVelocity = 0
 var XVelocity = 0
 var ZVelocity = 0
 var YVelocity = 0
+var CurrentAirJumps = 0
 var Direction = Vector3.ZERO
 var MaxDirection = Vector3.ZERO
 var LastDirection = Vector3.ZERO
-var DiveDirection = Vector3.ZERO
+var DashDirection = Vector3.ZERO
+var BonkDirection = Vector3.ZERO
 var SkidDirection = Vector3.ZERO
 var CurrentNormal = Vector3.UP
 var HoldingSpace = false
+var CanDash = false
 var Jumping = false
 var Skidding = false
 var Crouching = false
-var Diving = false
+var Dashing = false
+var Bonked = false
 
 func SetHeight(Height):
 	CollisionMesh.shape.height = Height
@@ -62,7 +68,7 @@ func AlignToFloor(Delta):
 	BeanMesh.global_transform.basis = Tilt
 
 func HorizontalVelocityHandler(Delta):
-	if !Skidding && !Diving:
+	if !Skidding && !Dashing && !Bonked:
 		if is_on_floor():
 			if MaxDirection != Vector3.ZERO:
 				var TargetSpeed = Speed if !Crouching else CrouchingSpeed
@@ -82,34 +88,52 @@ func HorizontalVelocityHandler(Delta):
 
 		XVelocity = HorizontalVelocity * LastDirection.x
 		ZVelocity = HorizontalVelocity * LastDirection.z
-	elif !Diving:
+	elif !Dashing && !Bonked:
 		HorizontalVelocity *= exp(-SkidDeceleration * Delta)
 		XVelocity = HorizontalVelocity * SkidDirection.x
 		ZVelocity = HorizontalVelocity * SkidDirection.z
+	elif !Bonked:
+		XVelocity = HorizontalVelocity * DashDirection.x
+		ZVelocity = HorizontalVelocity * DashDirection.z
 	else:
-		XVelocity = HorizontalVelocity * DiveDirection.x
-		ZVelocity = HorizontalVelocity * DiveDirection.z
+		LastDirection = BonkDirection
+		XVelocity = HorizontalVelocity * BonkDirection.x
+		ZVelocity = HorizontalVelocity * BonkDirection.z
 
 func Jump():
 	SkidTimer = 0
 	Jumping = true
 	JumpTimer = 0.1
 
-	if Crouching:
-		Crouching = false
-		SetHeight(StandHeight)
-		YVelocity = ShortJumpPower
-	else:
-		YVelocity = JumpPower
-		await get_tree().create_timer(0.1).timeout
-		if !HoldingSpace && !is_on_floor():
+	if is_on_floor():
+		if Crouching:
+			Crouching = false
+			SetHeight(StandHeight)
 			YVelocity = ShortJumpPower
+		else:
+			YVelocity = JumpPower
+			await get_tree().create_timer(0.1).timeout
+			if !HoldingSpace && !is_on_floor():
+				YVelocity = ShortJumpPower
+	else:
+		if CurrentAirJumps > 0:
+			CurrentAirJumps -= 1
+			if Dashing: Dashing = false
+			YVelocity = AirJumpPower
 
-func Dive():
-	Diving = true
-	DiveDirection = LastDirection
-	HorizontalVelocity = DiveSpeed
-	YVelocity = DiveLaunch
+func Dash():
+	CanDash = false
+	Dashing = true
+	DashDirection = LastDirection
+	HorizontalVelocity = DashSpeed
+	YVelocity = DashLaunch
+
+func Bonk(WallNormal):
+	Bonked = true
+	BonkDirection = -DashDirection.reflect(WallNormal)
+	YVelocity = HorizontalVelocity / 2
+	HorizontalVelocity /= 2
+	pass
 
 func _ready() -> void:
 	floor_snap_length = 0.6
@@ -120,13 +144,12 @@ func _ready() -> void:
 	pass
 
 func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("Jump") && !Jumping && is_on_floor():
-		HoldingSpace = true
+	if event.is_action_pressed("Jump"): HoldingSpace = true
+	if event.is_action_released("Jump"): HoldingSpace = false
+	if event.is_action_pressed("Jump") && !Jumping && !Bonked:
 		Jump()
-	elif event.is_action_released("Jump"):
-		HoldingSpace = false
-	elif event.is_action_pressed("Dive") && !is_on_floor():
-		Dive()
+	elif event.is_action_pressed("Dash") && !is_on_floor() && CanDash && !Bonked:
+		Dash()
 	elif event.is_action_pressed("Crouch") && is_on_floor():
 		if !Crouching:
 			Crouching = true
@@ -145,7 +168,7 @@ func _physics_process(Delta: float) -> void:
 
 	MaxDirection.y = 0
 	MaxDirection = MaxDirection.normalized()
-	Direction = Direction.lerp(MaxDirection, 0.2)
+	Direction = Direction.lerp(MaxDirection, (0.15 if is_on_floor() else 0.2))
 
 	if is_on_floor() && LastDirection.dot(MaxDirection) < -0.5 && !Skidding && !Crouching && HorizontalVelocity > Speed * 0.75:
 		SkidDirection = LastDirection
@@ -155,8 +178,12 @@ func _physics_process(Delta: float) -> void:
 	HorizontalVelocityHandler(Delta)
 
 	if is_on_floor():
-		if !Jumping: YVelocity = 0
-		Diving = false
+		if !Jumping:
+			CurrentAirJumps = MaxAirJumps
+			YVelocity = 0
+		CanDash = true
+		Bonked = false
+		Dashing = false
 	else:
 		if Crouching:
 			Crouching = false
@@ -165,4 +192,9 @@ func _physics_process(Delta: float) -> void:
 
 	self.velocity = Vector3(XVelocity, YVelocity, ZVelocity)
 	move_and_slide()
+
+	if Dashing && is_on_wall() && !Bonked:
+		if DashDirection.dot(get_wall_normal()) < -0.5:
+			Bonk(get_wall_normal())
+
 	AlignToFloor(Delta)
