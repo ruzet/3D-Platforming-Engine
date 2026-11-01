@@ -11,3 +11,6 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		TwistPivot.rotate_y(deg_to_rad(-event.relative.x / 4))
 		PitchPivot.rotate_x(deg_to_rad(-event.relative.y / 4))
+	elif event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_WHEEL_UP && event.is_pressed():
+			pass

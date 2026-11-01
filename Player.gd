@@ -11,7 +11,7 @@ const StandHeight = 2
 const CrouchHeight = 1.5
 const GroundAcceleration = 3
 const GroundDeceleration = 4
-const AirAccelerate = 2
+const AirAccelerate = 3
 const AirDecelerate = 4
 const SkidDeceleration = 8
 
@@ -31,6 +31,7 @@ var MaxDirection = Vector3.ZERO
 var LastDirection = Vector3.ZERO
 var DiveDirection = Vector3.ZERO
 var SkidDirection = Vector3.ZERO
+var CurrentNormal = Vector3.UP
 var HoldingSpace = false
 var Jumping = false
 var Skidding = false
@@ -49,6 +50,17 @@ func RotateValue(Value, Degrees):
 	Angle += Degrees
 	return clamp(Angle / 180, -1, 1)
 
+func AlignToFloor(Delta):
+	var TargetNormal = Vector3.UP
+	if is_on_floor() && get_floor_angle() < floor_max_angle:
+		TargetNormal = get_floor_normal() if is_on_floor() else Vector3.UP
+	else:
+		TargetNormal = Vector3.UP
+	CurrentNormal = CurrentNormal.slerp(TargetNormal, 1 - exp(-12 * Delta)).normalized()
+
+	var Tilt = Basis(Quaternion(Vector3.UP, CurrentNormal))
+	BeanMesh.global_transform.basis = Tilt
+
 func HorizontalVelocityHandler(Delta):
 	if !Skidding && !Diving:
 		if is_on_floor():
@@ -62,7 +74,7 @@ func HorizontalVelocityHandler(Delta):
 		else:
 			var CurrentHorizontalVelocity = HorizontalVelocity * LastDirection
 			var TargetHorizontalVelocity = (Direction * Speed if MaxDirection != Vector3.ZERO else Vector3.ZERO)
-			CurrentHorizontalVelocity = TargetHorizontalVelocity + (CurrentHorizontalVelocity - TargetHorizontalVelocity) * exp(-(AirAccelerate if MaxDirection != Vector3.ZERO else AirDecelerate) * Delta)
+			CurrentHorizontalVelocity = TargetHorizontalVelocity + (CurrentHorizontalVelocity - TargetHorizontalVelocity) * exp(- (AirAccelerate if MaxDirection != Vector3.ZERO else AirDecelerate) * Delta)
 
 			HorizontalVelocity = CurrentHorizontalVelocity.length()
 			if HorizontalVelocity > 0.1:
@@ -100,6 +112,9 @@ func Dive():
 	YVelocity = DiveLaunch
 
 func _ready() -> void:
+	floor_snap_length = 0.6
+	floor_constant_speed = true
+	floor_stop_on_slope = true
 	CollisionMesh.shape = CollisionMesh.shape.duplicate()
 	BeanMesh.mesh = BeanMesh.mesh.duplicate()
 	pass
@@ -143,7 +158,11 @@ func _physics_process(Delta: float) -> void:
 		if !Jumping: YVelocity = 0
 		Diving = false
 	else:
+		if Crouching:
+			Crouching = false
+			SetHeight(StandHeight)
 		YVelocity -= Gravity * Delta
 
 	self.velocity = Vector3(XVelocity, YVelocity, ZVelocity)
 	move_and_slide()
+	AlignToFloor(Delta)
