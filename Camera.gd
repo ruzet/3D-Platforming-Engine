@@ -17,7 +17,9 @@ func _ready() -> void:
 	TargetZoom = clamp(position.z, MinZoom, MaxZoom)
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
+	if event.is_action_pressed("ChangeCameraMode"):
+		Input.mouse_mode = (Input.MOUSE_MODE_VISIBLE if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else Input.MOUSE_MODE_CAPTURED)
+	elif event is InputEventMouseMotion:
 		TwistPivot.rotate_y(deg_to_rad(-event.relative.x / 4))
 		PitchPivot.rotate_x(deg_to_rad(-event.relative.y / 4))
 		PitchPivot.rotation_degrees.x = clamp(PitchPivot.rotation_degrees.x, -45, 20)
