@@ -20,8 +20,10 @@ You can test it out over here (nothing yet)!
 * Light Blue / Dark Blue - Max Air Jumps / No Air Jumps
 
 ## Testing
+
 * The platformer test builds have been tested for Mac, but not tested for Windows
 * For any Terra reviewer that read's this, Try the Mac build first!
+* **You will most likely have to allow the game to run through Settings -> Privacy & Security on Mac**
 
 ## Controls
 
