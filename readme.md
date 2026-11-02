@@ -2,7 +2,11 @@
 
 This is a 3D Platforming Engine made for Hack Club's Terra!
 You can download it and import it into Godot and probably build off of it or smth iono
-You can test it out over here (nothing yet)!
+You can test it out over here! (https://ruzet.itch.io/3d-platformer-engine)!
+
+## How
+
+I made this with Godot, the engine i've been using through out most of Terra, and I really just coded stuff until it worked how I wanted to, nothing interesting to really say here. I also made music for the game which is kinda cool i think.
 
 ## Features
 
