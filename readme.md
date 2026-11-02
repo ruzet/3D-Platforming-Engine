@@ -21,7 +21,7 @@ You can test it out over here (nothing yet)!
 
 ## Testing
 
-* The platformer test builds have been tested for Mac, but not tested for Windows
+* The platformer test builds have been tested for Mac, but not tested for Windows (tested on Crossover)
 * For any Terra reviewer that read's this, Try the Mac build first!
 * **You will most likely have to allow the game to run through Settings -> Privacy & Security on Mac**
 
